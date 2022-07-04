@@ -40,7 +40,13 @@ var tun_peer net.IP
 
 func newTun(name string) (iface *water.Interface, err error) {
 
-	iface, err = water.NewTUN(name)
+	config := water.Config{
+		DeviceType: water.TAP,
+	}
+	config.Name = name
+
+	//iface, err = water.New(name)
+	iface, err = water.New(config)
 	if err != nil {
 		return nil, err
 	}

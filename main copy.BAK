@@ -62,10 +62,10 @@ func main() {
 		}
 	*/
 
-	fmt.Println("using config file: ", cfgFile)
+	fmt.Println("using config file: %v", cfgFile)
 
 	icfg, err := ParseHopConfig(cfgFile)
-	fmt.Println(icfg)
+	fmt.Println("%v", icfg)
 	checkerr(err)
 
 	maxProcs := runtime.GOMAXPROCS(0)
@@ -75,11 +75,9 @@ func main() {
 
 	switch cfg := icfg.(type) {
 	case HopServerConfig:
-		fmt.Println("HopServerConfig")
 		err := NewServer(cfg)
 		checkerr(err)
 	case HopClientConfig:
-		fmt.Println("HopClientConfig")
 		err := NewClient(cfg)
 		checkerr(err)
 	default:

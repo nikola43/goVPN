@@ -75,7 +75,7 @@ type HopServer struct {
 
 func NewServer(cfg HopServerConfig) error {
 	var err error
-	fmt.Println(cfg)
+	fmt.Println("HopServerConfig -> ", cfg)
 
 	cipher, err = newHopCipher([]byte(cfg.Key))
 	if err != nil {
@@ -106,7 +106,7 @@ func NewServer(cfg HopServerConfig) error {
 	if err != nil {
 		return err
 	}
-	hopServer.ipnet = &net.IPNet{ip, subnet.Mask}
+	hopServer.ipnet = &net.IPNet{IP: ip, Mask: subnet.Mask}
 	hopServer.ippool.subnet = subnet
 
 	if cfg.FixMSS {
