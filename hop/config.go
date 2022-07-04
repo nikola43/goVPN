@@ -3,7 +3,7 @@ package hop
 import (
 	"errors"
 
-	"gopkg.in/gcfg.v1"
+	gcfg "gopkg.in/gcfg.v1"
 )
 
 // Server Config
