@@ -1,6 +1,6 @@
 GoHop
 =====
-GoHop is a VPN implemented in golang, with innate encryption and obfuscation. The goal of this project is to escape from censorship and
+GoVPN is a VPN implemented in golang, with innate encryption and obfuscation. The goal of this project is to escape from censorship and
 intelligent package inspection.
 
 Why Reinvent the Wheel?
