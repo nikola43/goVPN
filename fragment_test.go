@@ -1,4 +1,4 @@
-package hop
+package main
 
 import (
 	"fmt"

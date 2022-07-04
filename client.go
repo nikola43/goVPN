@@ -16,7 +16,7 @@
  *
  */
 
-package hop
+package main
 
 import (
 	"crypto/rand"
@@ -75,7 +75,7 @@ type HopClient struct {
 func NewClient(cfg HopClientConfig) error {
 	var err error
 
-	// logger.Debug("%v", cfg)
+	// fmt.Println("%v", cfg)
 	cipher, err = newHopCipher([]byte(cfg.Key))
 	if err != nil {
 		return err
@@ -100,12 +100,12 @@ func NewClient(cfg HopClientConfig) error {
 
 	switch cfg.MorphMethod {
 	case "randsize":
-		logger.Warning("Traffic Morphing is disabled in this version")
+		fmt.Println("Traffic Morphing is disabled in this version")
 		// m := newRandMorpher(MTU)
 		// hopFrager = newHopFragmenter(m)
-		// logger.Info("Using RandomSize Morpher")
+		// fmt.Println("Using RandomSize Morpher")
 	default:
-		logger.Info("No Traffic Morphing")
+		fmt.Println("No Traffic Morphing")
 	}
 
 	go hopClient.cleanUp()
@@ -117,7 +117,7 @@ func NewClient(cfg HopClientConfig) error {
 	hopClient.iface = iface
 
 	net_gateway, net_nic, err = getNetGateway()
-	logger.Debug(
+	fmt.Println(
 		fmt.Sprintf("Net Gateway: %s %s", net_gateway, net_nic),
 	)
 	if err != nil {
@@ -134,12 +134,12 @@ wait_handshake:
 	for {
 		select {
 		case <-hopClient.handshakeDone:
-			logger.Info("Handshake Success")
+			fmt.Println("Handshake Success")
 			break wait_handshake
 		case <-hopClient.handshakeError:
 			return errors.New("Handshake Fail")
 		case <-time.After(3 * time.Second):
-			logger.Info("Handshake Timeout")
+			fmt.Println("Handshake Timeout")
 			atomic.CompareAndSwapInt32(&hopClient.state, HOP_STAT_HANDSHAKE, HOP_STAT_INIT)
 		}
 	}
@@ -164,7 +164,7 @@ wait_handshake:
 		} else {
 			cmd = exec.Command(args[0], args[1:]...)
 		}
-		logger.Info(cfg.Up)
+		fmt.Println(cfg.Up)
 		cmd.Run()
 	}
 
@@ -173,7 +173,7 @@ wait_handshake:
 			<-routeDone
 			err = redirectGateway(iface.Name(), tun_peer.String())
 			if err != nil {
-				logger.Error(err.Error())
+				fmt.Println(err.Error())
 				return
 			}
 		}()
@@ -189,11 +189,11 @@ func (clt *HopClient) handleInterface() {
 	go func() {
 		for {
 			hp := <-clt.toIface
-			// logger.Debug("New Net packet to device")
+			// fmt.Println("New Net packet to device")
 			_, err := clt.iface.Write(hp.payload)
-			// logger.Debug("n: %d, len: %d", n, len(hp.payload))
+			// fmt.Println("n: %d, len: %d", n, len(hp.payload))
 			if err != nil {
-				logger.Error(err.Error())
+				fmt.Println(err.Error())
 				return
 			}
 		}
@@ -203,7 +203,7 @@ func (clt *HopClient) handleInterface() {
 	for {
 		n, err := clt.iface.Read(frame)
 		if err != nil {
-			logger.Error(err.Error())
+			fmt.Println(err.Error())
 			return
 		}
 
@@ -234,7 +234,7 @@ func (clt *HopClient) handleUDP(server string) {
 	udpAddr, _ := net.ResolveUDPAddr("udp", server)
 	udpConn, _ := net.DialUDP("udp", nil, udpAddr)
 
-	logger.Debug(udpConn.RemoteAddr().String())
+	fmt.Println(udpConn.RemoteAddr().String())
 
 	// packet map
 	pktHandle := map[byte](func(*net.UDPConn, *HopPacket)){
@@ -258,7 +258,7 @@ func (clt *HopClient) handleUDP(server string) {
 			case <-clt.handshakeDone:
 				return
 			case <-time.After(5 * time.Second):
-				logger.Debug("Handshake timeout, retry")
+				fmt.Println("Handshake timeout, retry")
 			}
 		}
 	}()
@@ -298,9 +298,9 @@ func (clt *HopClient) handleUDP(server string) {
 		for {
 			hp := <-clt.toNet
 			hp.setSid(clt.sid)
-			// logger.Debug("New iface frame")
+			// fmt.Println("New iface frame")
 			// dest := waterutil.IPv4Destination(frame)
-			// logger.Debug("ip dest: %v", dest)
+			// fmt.Println("ip dest: %v", dest)
 
 			udpConn.Write(hp.Pack())
 		}
@@ -308,23 +308,23 @@ func (clt *HopClient) handleUDP(server string) {
 
 	buf := make([]byte, IFACE_BUFSIZE)
 	for {
-		//logger.Debug("waiting for udp packet")
+		//fmt.Println("waiting for udp packet")
 		n, err := udpConn.Read(buf)
-		//logger.Debug("New UDP Packet, len: %d", n)
+		//fmt.Println("New UDP Packet, len: %d", n)
 		if err != nil {
-			logger.Error(err.Error())
+			fmt.Println(err.Error())
 			continue
 		}
 
 		hp, err := unpackHopPacket(buf[:n])
 		if err != nil {
-			logger.Debug("Error depacketing")
+			fmt.Println("Error depacketing")
 			continue
 		}
 		if handle_func, ok := pktHandle[hp.Flag]; ok {
 			handle_func(udpConn, hp)
 		} else {
-			logger.Error(
+			fmt.Println(
 				fmt.Sprintf("Unkown flag: %x", hp.Flag),
 			)
 		}
@@ -354,17 +354,17 @@ func (clt *HopClient) knock(u *net.UDPConn) {
 // handshake with server
 func (clt *HopClient) handeshake(u *net.UDPConn) {
 	res := atomic.CompareAndSwapInt32(&clt.state, HOP_STAT_INIT, HOP_STAT_HANDSHAKE)
-	// logger.Debug("raced for handshake: %v", res)
+	// fmt.Println("raced for handshake: %v", res)
 
 	if res {
-		logger.Info("start handeshaking")
+		fmt.Println("start handeshaking")
 		clt.toServer(u, HOP_FLG_HSH, clt.sid[:], true)
 	}
 }
 
 // finish session
 func (clt *HopClient) finishSession() {
-	logger.Info("Finishing Session")
+	fmt.Println("Finishing Session")
 	atomic.StoreInt32(&clt.state, HOP_STAT_FIN)
 	hp := new(HopPacket)
 	hp.Flag = HOP_FLG_FIN
@@ -382,7 +382,7 @@ func (clt *HopClient) handleKnockAck(u *net.UDPConn, hp *HopPacket) {
 
 // heartbeat ack
 func (clt *HopClient) handleHeartbeat(u *net.UDPConn, hp *HopPacket) {
-	logger.Debug("Heartbeat from server")
+	fmt.Println("Heartbeat from server")
 	clt.toServer(u, HOP_FLG_PSH|HOP_FLG_ACK, clt.sid[:], true)
 }
 
@@ -391,7 +391,7 @@ func (clt *HopClient) handleHandshakeAck(u *net.UDPConn, hp *HopPacket) {
 	if atomic.LoadInt32(&clt.state) == HOP_STAT_HANDSHAKE {
 		proto_version := hp.payload[0]
 		if proto_version != HOP_PROTO_VERSION {
-			logger.Error("Incompatible protocol version!")
+			fmt.Println("Incompatible protocol version!")
 			os.Exit(1)
 		}
 
@@ -406,13 +406,13 @@ func (clt *HopClient) handleHandshakeAck(u *net.UDPConn, hp *HopPacket) {
 		}
 		res := atomic.CompareAndSwapInt32(&clt.state, HOP_STAT_HANDSHAKE, HOP_STAT_WORKING)
 		if !res {
-			logger.Error("Client state not expected: %d", clt.state)
+			fmt.Println("Client state not expected: %d", clt.state)
 		}
-		logger.Info("Session Initialized")
+		fmt.Println("Session Initialized")
 		close(clt.handshakeDone)
 	}
 
-	logger.Debug("Handshake Ack to Server")
+	fmt.Println("Handshake Ack to Server")
 	clt.toServer(u, HOP_FLG_HSH|HOP_FLG_ACK, clt.sid[:], true)
 }
 
@@ -423,7 +423,7 @@ func (clt *HopClient) handleHandshakeError(u *net.UDPConn, hp *HopPacket) {
 
 // handle data packet
 func (clt *HopClient) handleDataPacket(u *net.UDPConn, hp *HopPacket) {
-	// logger.Debug("New HopPacket Seq: %d", packet.Seq)
+	// fmt.Println("New HopPacket Seq: %d", packet.Seq)
 	clt.recvBuf.Push(hp)
 }
 
@@ -434,7 +434,7 @@ func (clt *HopClient) handleFinishAck(u *net.UDPConn, hp *HopPacket) {
 
 // handle finish
 func (clt *HopClient) handleFinish(u *net.UDPConn, hp *HopPacket) {
-	logger.Info("Finish")
+	fmt.Println("Finish")
 	pid := os.Getpid()
 	syscall.Kill(pid, syscall.SIGTERM)
 }
@@ -443,7 +443,7 @@ func (clt *HopClient) cleanUp() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	<-c
-	logger.Info("Cleaning Up")
+	fmt.Println("Cleaning Up")
 
 	if clt.cfg.Redirect_gateway {
 		delRoute("0.0.0.0/1")
@@ -459,7 +459,7 @@ func (clt *HopClient) cleanUp() {
 		} else {
 			cmd = exec.Command(args[0], args[1:]...)
 		}
-		logger.Info(clt.cfg.Down)
+		fmt.Println(clt.cfg.Down)
 		cmd.Run()
 	}
 
@@ -474,9 +474,9 @@ func (clt *HopClient) cleanUp() {
 
 	select {
 	case <-clt.finishAck:
-		logger.Info("Finish Acknowledged")
+		fmt.Println("Finish Acknowledged")
 	case <-timeout:
-		logger.Info("Timeout, give up")
+		fmt.Println("Timeout, give up")
 	}
 
 	for _, dest := range clt.routes {

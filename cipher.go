@@ -16,13 +16,14 @@
  *
  */
 
-package hop
+package main
 
 import (
 	"bytes"
 	"crypto/aes"
 	_cipher "crypto/cipher"
 	"crypto/rand"
+	"fmt"
 
 	"github.com/golang/snappy"
 )
@@ -47,7 +48,7 @@ func newHopCipher(key []byte) (*hopCipher, error) {
 func (s *hopCipher) encrypt(msg []byte) []byte {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("error encrypting:", err)
+			fmt.Println("error encrypting:", err)
 		}
 	}()
 	// compressing using snappy and encrypting data
@@ -74,7 +75,7 @@ func (s *hopCipher) encrypt(msg []byte) []byte {
 func (s *hopCipher) decrypt(iv []byte, ctext []byte) []byte {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("panic:", err)
+			fmt.Println("panic:", err)
 		}
 	}()
 	var err error
@@ -85,7 +86,7 @@ func (s *hopCipher) decrypt(iv []byte, ctext []byte) []byte {
 
 	ctext, err = snappy.Decode(nil, ctext)
 	if err != nil {
-		logger.Error(err)
+		fmt.Println(err)
 	}
 	return ctext
 }

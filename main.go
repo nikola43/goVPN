@@ -23,9 +23,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-
-	"github.com/nikola43/gohop/hop"
-	. "github.com/nikola43/gohop/internal"
 )
 
 var srvMode, cltMode, debug, getVersion bool
@@ -45,13 +42,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	InitLogger(debug)
-	logger := GetLogger()
+	//InitLogger(debug)
+	//logger := GetLogger()
 
 	checkerr := func(err error) {
 		if err != nil {
-			logger.Error(err.Error())
-			os.Exit(1)
+			//fmt.Println(err.Error())
+			//os.Exit(1)
 		}
 	}
 
@@ -59,10 +56,10 @@ func main() {
 		cfgFile = flag.Arg(0)
 	}
 
-	logger.Info("using config file: %v", cfgFile)
+	fmt.Println("using config file: %v", cfgFile)
 
-	icfg, err := hop.ParseHopConfig(cfgFile)
-	logger.Debug("%v", icfg)
+	icfg, err := ParseHopConfig(cfgFile)
+	fmt.Println("%v", icfg)
 	checkerr(err)
 
 	maxProcs := runtime.GOMAXPROCS(0)
@@ -71,13 +68,14 @@ func main() {
 	}
 
 	switch cfg := icfg.(type) {
-	case hop.HopServerConfig:
-		err := hop.NewServer(cfg)
+	case HopServerConfig:
+		err := NewServer(cfg)
 		checkerr(err)
-	case hop.HopClientConfig:
-		err := hop.NewClient(cfg)
+	case HopClientConfig:
+		err := NewClient(cfg)
 		checkerr(err)
 	default:
-		logger.Error("Invalid config file")
+		fmt.Println("Invalid config file")
 	}
+	
 }

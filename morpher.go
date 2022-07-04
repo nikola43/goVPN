@@ -1,4 +1,4 @@
-package hop
+package main
 
 //Handle packet morphing
 
