@@ -53,14 +53,12 @@ func main() {
 	}
 
 	if cfgFile == "" {
-		cfgFile = "client.ini"
+		//cfgFile = "client.ini"
 	}
 
-	
-		if cfgFile == "" {
-			cfgFile = flag.Arg(0)
-		}
-	
+	if cfgFile == "" {
+		cfgFile = flag.Arg(0)
+	}
 
 	fmt.Println("using config file: ", cfgFile)
 
