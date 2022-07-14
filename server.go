@@ -79,6 +79,7 @@ func NewServer(cfg HopServerConfig) error {
 
 	cipher, err = newHopCipher([]byte(cfg.Key))
 	if err != nil {
+		panic(err)
 		return err
 	}
 
@@ -98,12 +99,15 @@ func NewServer(cfg HopServerConfig) error {
 
 	iface, err := newTun("")
 	if err != nil {
+		fmt.Println(err.Error())
+		//panic(err)
 		return err
 	}
 	hopServer.iface = iface
 	ip, subnet, err := net.ParseCIDR(cfg.Addr)
 	err = setTunIP(iface, ip, subnet)
 	if err != nil {
+		panic(err)
 		return err
 	}
 	hopServer.ipnet = &net.IPNet{IP: ip, Mask: subnet.Mask}
@@ -165,6 +169,7 @@ func NewServer(cfg HopServerConfig) error {
 			// fmt.Println("n: %d, len: %d", n, len(hp.payload))
 			if err != nil {
 				fmt.Println(err.Error())
+				panic(err)
 				return
 			}
 		}
@@ -174,6 +179,7 @@ func NewServer(cfg HopServerConfig) error {
 	for {
 		n, err := iface.Read(buf)
 		if err != nil {
+			panic(err)
 			return err
 		}
 
@@ -188,11 +194,13 @@ func (srv *HopServer) listenAndServe(addr string, port string, idx int) {
 	port = addr + ":" + port
 	udpAddr, err := net.ResolveUDPAddr("udp", port)
 	if err != nil {
+		panic(err)
 		fmt.Println("Invalid port:", port)
 		return
 	}
 	udpConn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
+		panic(err)
 		fmt.Println(
 			fmt.Sprintf("Failed to listen udp port %s: %s", port, err.Error()),
 		)
@@ -259,7 +267,7 @@ func (srv *HopServer) forwardFrames() {
 			dest := waterutil.IPv4Destination(frame).To4()
 			mkey := ip4_uint64(dest)
 
-			// fmt.Println("ip dest: %v", dest)
+			fmt.Println("ip dest:", dest)
 			if hpeer, found := srv.peers[mkey]; found {
 				srv.bufferToClient(hpeer, pack)
 			} else {
@@ -286,6 +294,7 @@ func (srv *HopServer) handlePacket(packet *udpPacket) {
 
 	hPack, err := unpackHopPacket(packet.data)
 	if err == nil {
+		panic(err)
 		fmt.Println(
 			fmt.Sprintf("New UDP Packet [%v] from : %v", hPack.Flag, packet.addr),
 		)

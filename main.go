@@ -53,14 +53,14 @@ func main() {
 	}
 
 	if cfgFile == "" {
-		cfgFile = "server.ini"
+		cfgFile = "client.ini"
 	}
 
-	/*
+	
 		if cfgFile == "" {
 			cfgFile = flag.Arg(0)
 		}
-	*/
+	
 
 	fmt.Println("using config file: ", cfgFile)
 
@@ -75,11 +75,9 @@ func main() {
 
 	switch cfg := icfg.(type) {
 	case HopServerConfig:
-		fmt.Println("HopServerConfig")
 		err := NewServer(cfg)
 		checkerr(err)
 	case HopClientConfig:
-		fmt.Println("HopClientConfig")
 		err := NewClient(cfg)
 		checkerr(err)
 	default:

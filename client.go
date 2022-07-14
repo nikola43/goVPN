@@ -74,7 +74,7 @@ type HopClient struct {
 
 func NewClient(cfg HopClientConfig) error {
 	var err error
-	fmt.Println("RUN")
+	fmt.Println("HopClientConfig")
 	// fmt.Println("%v", cfg)
 	cipher, err = newHopCipher([]byte(cfg.Key))
 	if err != nil {
