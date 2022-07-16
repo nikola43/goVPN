@@ -238,7 +238,7 @@ func unredirectPort(from, to string) error {
 
 func fixMSS(iface string, is_server bool) error {
 	mss := MTU - 40
-	fmt.Println("Fix MSS with iptables to %d", mss)
+	fmt.Println("Fix MSS with iptables to ", mss)
 	io := "o"
 	if is_server {
 		io = "i"
@@ -246,9 +246,11 @@ func fixMSS(iface string, is_server bool) error {
 	fmt.Println("io", io)
 	fmt.Println("iface", iface)
 	sargs := fmt.Sprintf("-I FORWARD -%s %s -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss %d", io, iface, mss)
+	fmt.Println("sargs", sargs)
 	args := strings.Split(sargs, " ")
+	fmt.Println("args", args)
 	cmd := exec.Command("iptables", args...)
-	fmt.Println("iptables %s", sargs)
+	fmt.Println("iptables", sargs)
 	err := cmd.Run()
 
 	if err != nil {
