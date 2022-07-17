@@ -219,8 +219,8 @@ func (srv *HopServer) listenAndServe(addr string, port string, idx int) {
 	go func() {
 		for {
 			packet := <-toNet
-			// fmt.Println("index: %d, port: %s", idx, port)
-			// fmt.Println("client addr: %v", packet.addr)
+			fmt.Println("index: %d, port: %s", idx, port)
+			fmt.Println("client addr: ", packet.addr)
 			udpConn.WriteTo(packet.data, packet.addr)
 		}
 	}()
@@ -232,7 +232,7 @@ func (srv *HopServer) listenAndServe(addr string, port string, idx int) {
 		buf := make([]byte, IFACE_BUFSIZE)
 		// fmt.Println("Recieving packet %s", port)
 		plen, packet.addr, err = udpConn.ReadFromUDP(buf)
-		// fmt.Println("New UDP Packet from: %v", packet.addr)
+		fmt.Println("New UDP Packet from: ", packet.addr)
 
 		packet.data = buf[:plen]
 		if err != nil {

@@ -53,7 +53,7 @@ func main() {
 	}
 
 	if cfgFile == "" {
-		//cfgFile = "client.ini"
+		cfgFile = "prod_client.ini"
 	}
 
 	if cfgFile == "" {

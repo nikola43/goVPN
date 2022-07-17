@@ -110,17 +110,21 @@ func NewClient(cfg HopClientConfig) error {
 
 	go hopClient.cleanUp()
 
-	iface, err := newTun("")
-	if err != nil {
-		return err
+	iface, newTunErr := newTun("")
+	if newTunErr != nil {
+		fmt.Println("newTunErr")
+		fmt.Println(newTunErr.Error())
+		return newTunErr
 	}
 	hopClient.iface = iface
 
-	net_gateway, net_nic, err = getNetGateway()
+	net_gateway, net_nic, err := getNetGateway()
 	fmt.Println(
 		fmt.Sprintf("Net Gateway: %s %s", net_gateway, net_nic),
 	)
 	if err != nil {
+		fmt.Println("net_gateway")
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -233,7 +237,10 @@ func (clt *HopClient) handleUDP(server string) {
 	udpAddr, _ := net.ResolveUDPAddr("udp", server)
 	udpConn, _ := net.DialUDP("udp", nil, udpAddr)
 
-	fmt.Println(udpConn.RemoteAddr().String())
+	fmt.Println("handleUDP")
+	fmt.Println("server", server)
+	fmt.Println("udpAddr", udpAddr)
+	fmt.Println("udpConn.RemoteAddr().String()", udpConn.RemoteAddr().String())
 
 	// packet map
 	pktHandle := map[byte](func(*net.UDPConn, *HopPacket)){
@@ -283,6 +290,7 @@ func (clt *HopClient) handleUDP(server string) {
 		if atomic.CompareAndSwapInt32(&clt.srvRoute, 0, 1) {
 			if udpAddr, ok := udpConn.RemoteAddr().(*net.UDPAddr); ok {
 				srvIP := udpAddr.IP.To4()
+				//fmt.Println("srvIP", srvIP)
 				if srvIP != nil {
 					srvDest := srvIP.String() + "/32"
 					addRoute(srvDest, net_gateway, net_nic)
@@ -298,8 +306,8 @@ func (clt *HopClient) handleUDP(server string) {
 			hp := <-clt.toNet
 			hp.setSid(clt.sid)
 			// fmt.Println("New iface frame")
-			// dest := waterutil.IPv4Destination(frame)
-			// fmt.Println("ip dest: %v", dest)
+			//dest := waterutil.IPv4Destination(frame)
+			//fmt.Println("ip dest: %v", dest)
 
 			udpConn.Write(hp.Pack())
 		}
@@ -309,8 +317,9 @@ func (clt *HopClient) handleUDP(server string) {
 	for {
 		//fmt.Println("waiting for udp packet")
 		n, err := udpConn.Read(buf)
-		//fmt.Println("New UDP Packet, len: %d", n)
+		fmt.Println("New UDP Packet, len: ", n)
 		if err != nil {
+			fmt.Println("udpConn.Read(buf)")
 			fmt.Println(err.Error())
 			continue
 		}
