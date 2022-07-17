@@ -52,9 +52,11 @@ func main() {
 		}
 	}
 
-	if cfgFile == "" {
-		cfgFile = "prod_client.ini"
-	}
+	/*
+		if cfgFile == "" {
+			cfgFile = "prod_client.ini"
+		}
+	*/
 
 	if cfgFile == "" {
 		cfgFile = flag.Arg(0)
